@@ -15,15 +15,19 @@ class Pet:
     owner_id: str
 
     def get_profile(self):
+        """Returns all pet details."""
         pass
 
     def update_profile(self):
+        """Edits name, age, weight, etc."""
         pass
 
     def get_scheduled_activities(self):
+        """Returns all activities for this pet."""
         pass
 
     def get_todays_tasks(self):
+        """Filters activities to today only."""
         pass
 
 
@@ -37,18 +41,23 @@ class Owner:
     pets: List[Pet]
 
     def add_pet(self, pet):
+        """Adds a new pet to their profile."""
         pass
 
     def remove_pet(self, pet_id):
+        """Removes a pet."""
         pass
 
     def get_all_pets(self):
+        """Returns full list of their pets."""
         pass
 
     def get_todays_dashboard(self):
+        """Aggregates all tasks across all pets for today."""
         pass
 
     def update_account(self):
+        """Edits personal info."""
         pass
 
 
@@ -64,15 +73,19 @@ class Activity:
     status: str  # Pending / Completed / Skipped
 
     def mark_complete(self):
+        """Sets status to Completed."""
         pass
 
     def mark_skipped(self):
+        """Sets status to Skipped."""
         pass
 
     def reschedule(self, new_date, new_time):
+        """Updates date/time."""
         pass
 
     def get_details(self):
+        """Returns full activity info."""
         pass
 
 
@@ -83,9 +96,11 @@ class Walk(Activity):
     walker_name: Optional[str]
 
     def log_distance(self, miles):
+        """Records how far the walk was."""
         pass
 
     def assign_walker(self, name):
+        """Assigns a walker other than the owner."""
         pass
 
 
@@ -98,9 +113,11 @@ class VetVisit(Activity):
     next_visit_date: Optional[date]
 
     def record_diagnosis(self, text):
+        """Saves the vet's notes."""
         pass
 
     def schedule_followup(self, date):
+        """Creates a follow-up vet visit."""
         pass
 
 
@@ -111,9 +128,11 @@ class Feeding(Activity):
     feeding_time: str  # morning / afternoon / evening
 
     def log_portion(self, amount):
+        """Records how much was actually eaten."""
         pass
 
     def update_food_type(self, food):
+        """Changes the food being tracked."""
         pass
 
 
@@ -124,13 +143,17 @@ class TaskList:
     tasks: List[Activity]
 
     def get_pending_tasks(self):
+        """Returns only incomplete tasks."""
         pass
 
     def get_completed_tasks(self):
+        """Returns finished tasks."""
         pass
 
     def sort_by_time(self):
+        """Orders tasks chronologically."""
         pass
 
     def filter_by_pet(self, pet_id):
+        """Shows tasks for one pet only."""
         pass

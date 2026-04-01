@@ -12,6 +12,21 @@ See Today's Tasks : The user can view a daily dashboard showing all upcoming or 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Owner
+The Owner class represents the user of the application. Its primary responsibility is to serve as the top-level entry point into the system. It holds the user's personal information (name, email, phone) and maintains a list of all pets that belong to them. It is responsible for adding and removing pets, and for aggregating a daily dashboard view across all of its pets.
+Pet
+The Pet class is the central object in the system. It holds all descriptive information about an animal name, species, breed, age, and weight and is responsible for maintaining a list of scheduled activities associated with that pet. It can return its full profile, update its own details, and filter its activities down to just today's tasks.
+Activity
+The Activity class acts as the base class for all scheduled care events. It holds the common attributes shared by every task: which pet it belongs to, what type of activity it is, when it is scheduled, how long it lasts, any relevant notes, and its current status (Pending, Completed, or Skipped). It is responsible for managing its own lifecycle — marking itself complete, marking itself skipped, and rescheduling itself to a new date or time.
+Walk
+Walk extends Activity and adds responsibilities specific to physical exercise. It tracks route information, distance covered, and who is performing the walk if not the owner. It is responsible for logging distance and assigning a walker.
+Feeding
+Feeding extends Activity and handles meal-specific details. It tracks the type of food, portion size, and time of day. It is responsible for logging how much the pet actually ate and updating the food type being tracked.
+Vet Visit
+Vet Visit extends Activity and manages medical appointment data. It holds the vet's name, clinic, reason for the visit, diagnosis notes, and the date of any follow-up. It is responsible for recording a diagnosis and scheduling a follow-up appointment.
+Task List
+The Task List class serves as the daily dashboard. It is scoped to a specific owner and a specific date, and holds all Activity objects scheduled for that day. Its responsibility is purely organizational  sorting tasks by time, filtering by pet, and separating pending from completed tasks so the user gets a clear view of their day.
+
 **b. Design changes**
 
 - Did your design change during implementation?
