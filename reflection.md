@@ -2,6 +2,11 @@
 
 ## 1. System Design
 
+### Actions
+Add a Pet : The user can create a profile for their pet by entering details like name, species, breed, age, and a photo. This profile serves as the foundation for all other features.
+Schedule a Walk (or Activity) : The user can schedule a walk or other care activity (feeding, vet visit, grooming) for a specific pet, setting a date, time, and duration.
+See Today's Tasks : The user can view a daily dashboard showing all upcoming or pending care tasks for the day, so nothing gets missed
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
