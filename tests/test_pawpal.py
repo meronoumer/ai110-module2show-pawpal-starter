@@ -1,5 +1,5 @@
 import pytest
-from datetime import date, time
+from datetime import date, time, datetime, timedelta
 from pawpal_system import Pet, Owner, Activity, Walk, VetVisit, Feeding, TaskList
 
 
@@ -183,3 +183,173 @@ class TestTaskList:
         assert hasattr(task_list, 'get_completed_tasks')
         assert hasattr(task_list, 'sort_by_time')
         assert hasattr(task_list, 'filter_by_pet')
+
+
+class TestAdvancedScheduling:
+    """Tests for priority sorting, conflict detection, and recurring tasks."""
+
+    def test_priority_field_exists(self):
+        """Test that Activity has priority field with default."""
+        activity = Activity("1", "pet1", "Walk", date.today(), time(10,0), 30, "notes", "Pending")
+        assert hasattr(activity, 'priority')
+        assert activity.priority == 2  # Default medium priority
+
+    def test_recurrence_field_exists(self):
+        """Test that Activity has recurrence field."""
+        activity = Activity("1", "pet1", "Walk", date.today(), time(10,0), 30, "notes", "Pending")
+        assert hasattr(activity, 'recurrence')
+        assert activity.recurrence is None  # Default no recurrence
+
+    def test_priority_sorting(self):
+        """Test sorting tasks by priority then time."""
+        today = date.today()
+        low_task = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending", priority=1)
+        high_task = Activity("2", "pet1", "Feed", today, time(10,0), 15, "", "Pending", priority=3)
+        medium_task = Activity("3", "pet1", "Play", today, time(9,0), 20, "", "Pending", priority=2)
+        
+        task_list = TaskList("owner1", today, [low_task, high_task, medium_task])
+        sorted_tasks = task_list.sort_by_time()
+        
+        # Should be sorted high (3), medium (2), low (1)
+        assert sorted_tasks[0].priority == 3
+        assert sorted_tasks[1].priority == 2
+        assert sorted_tasks[2].priority == 1
+
+    def test_get_end_time(self):
+        """Test calculating end time of an activity."""
+        activity = Activity("1", "pet1", "Walk", date.today(), time(10,0), 30, "", "Pending")
+        end_time = activity.get_end_time()
+        expected_end = datetime.combine(date.today(), time(10,0)) + timedelta(minutes=30)
+        assert end_time == expected_end
+
+    def test_conflict_detection_overlapping_tasks(self):
+        """Test detecting overlapping tasks on the same day."""
+        today = date.today()
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")  # 8:00-8:30
+        task2 = Activity("2", "pet1", "Feed", today, time(8,15), 15, "", "Pending")  # 8:15-8:30 (overlaps)
+        
+        task_list = TaskList("owner1", today, [task1, task2])
+        conflicts = task_list.detect_conflicts()
+        
+        assert len(conflicts) == 1
+        assert conflicts[0] == (task1, task2)
+
+    def test_conflict_detection_no_conflicts(self):
+        """Test that non-overlapping tasks don't conflict."""
+        today = date.today()
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")  # 8:00-8:30
+        task2 = Activity("2", "pet1", "Feed", today, time(9,0), 15, "", "Pending")  # 9:00-9:15 (no overlap)
+        
+        task_list = TaskList("owner1", today, [task1, task2])
+        conflicts = task_list.detect_conflicts()
+        
+        assert len(conflicts) == 0
+
+    def test_conflict_detection_different_dates(self):
+        """Test that tasks on different dates don't conflict."""
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")
+        task2 = Activity("2", "pet1", "Feed", tomorrow, time(8,0), 15, "", "Pending")
+        
+        task_list = TaskList("owner1", today, [task1, task2])
+        conflicts = task_list.detect_conflicts()
+        
+        assert len(conflicts) == 0
+
+    def test_get_total_duration(self):
+        """Test calculating total duration of all tasks."""
+        today = date.today()
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")
+        task2 = Activity("2", "pet1", "Feed", today, time(9,0), 15, "", "Pending")
+        task3 = Activity("3", "pet2", "Play", today, time(10,0), 45, "", "Pending")
+        
+        task_list = TaskList("owner1", today, [task1, task2, task3])
+        total = task_list.get_total_duration()
+        
+        assert total == 90  # 30 + 15 + 45
+
+    def test_get_pending_duration(self):
+        """Test calculating duration of only pending tasks."""
+        today = date.today()
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")
+        task2 = Activity("2", "pet1", "Feed", today, time(9,0), 15, "", "Completed")
+        
+        task_list = TaskList("owner1", today, [task1, task2])
+        pending = task_list.get_pending_duration()
+        
+        assert pending == 30
+
+    def test_get_tasks_by_status(self):
+        """Test filtering tasks by status."""
+        today = date.today()
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")
+        task2 = Activity("2", "pet1", "Feed", today, time(9,0), 15, "", "Completed")
+        task3 = Activity("3", "pet1", "Play", today, time(10,0), 20, "", "Pending")
+        
+        task_list = TaskList("owner1", today, [task1, task2, task3])
+        
+        pending = task_list.get_tasks_by_status("Pending")
+        completed = task_list.get_tasks_by_status("Completed")
+        
+        assert len(pending) == 2
+        assert len(completed) == 1
+
+    def test_recurring_daily_task_generation(self):
+        """Test generating recurring daily tasks."""
+        today = date.today()
+        walk = Walk(
+            "1", "pet1", "Walk", today, time(8,0), 30, "Daily walk", "Pending",
+            priority=2, recurrence="daily", route="Park", distance_miles=2.0, walker_name=None
+        )
+        
+        task_list = TaskList("owner1", today, [walk])
+        new_tasks = task_list.generate_recurring_tasks(3)
+        
+        assert len(new_tasks) == 3
+        assert new_tasks[0].scheduled_date == today + timedelta(days=1)
+        assert new_tasks[1].scheduled_date == today + timedelta(days=2)
+        assert new_tasks[2].scheduled_date == today + timedelta(days=3)
+
+    def test_recurring_weekly_task_generation(self):
+        """Test generating recurring weekly tasks."""
+        today = date.today()
+        vet_visit = VetVisit(
+            "1", "pet1", "Vet Visit", today, time(14,0), 60, "Monthly checkup", "Pending",
+            priority=3, recurrence="weekly", vet_name="Dr. Smith", clinic_name="Clinic",
+            reason="Checkup", diagnosis="", next_visit_date=None
+        )
+        
+        task_list = TaskList("owner1", today, [vet_visit])
+        new_tasks = task_list.generate_recurring_tasks(14)  # 2 weeks
+        
+        assert len(new_tasks) == 2
+        assert new_tasks[0].scheduled_date == today + timedelta(weeks=1)
+        assert new_tasks[1].scheduled_date == today + timedelta(weeks=2)
+
+    def test_filter_by_pet_with_multiple_pets(self):
+        """Test filtering tasks by specific pet when multiple pets exist."""
+        today = date.today()
+        task1 = Activity("1", "pet1", "Walk", today, time(8,0), 30, "", "Pending")
+        task2 = Activity("2", "pet2", "Feed", today, time(9,0), 15, "", "Pending")
+        task3 = Activity("3", "pet1", "Play", today, time(10,0), 20, "", "Pending")
+        
+        task_list = TaskList("owner1", today, [task1, task2, task3])
+        pet1_tasks = task_list.filter_by_pet("pet1")
+        pet2_tasks = task_list.filter_by_pet("pet2")
+        
+        assert len(pet1_tasks) == 2
+        assert len(pet2_tasks) == 1
+        assert pet1_tasks[0].id == "1"
+        assert pet1_tasks[1].id == "3"
+
+    def test_activity_get_details_with_priority_and_recurrence(self):
+        """Test that get_details includes priority and recurrence."""
+        activity = Activity(
+            "1", "pet1", "Walk", date.today(), time(8,0), 30, "notes", "Pending",
+            priority=3, recurrence="daily"
+        )
+        details = activity.get_details()
+        
+        assert details['priority'] == 3
+        assert details['recurrence'] == "daily"
