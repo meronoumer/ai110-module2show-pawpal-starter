@@ -1,3 +1,31 @@
+"""
+PawPal+ Unit Test Suite
+=======================
+
+RUN TESTS: python -m pytest tests/test_pawpal.py -v
+
+TEST COVERAGE:
+- Core Classes: Pet, Owner, Activity, Walk, VetVisit, Feeding, TaskList
+- Class Creation & Attributes: Validates all dataclass fields and defaults
+- Method Existence: Confirms all required methods are implemented
+- Inheritance: Verifies correct class hierarchy and method availability
+
+ADVANCED SCHEDULING TESTS:
+- Priority Sorting: Tasks sorted by priority (High→Medium→Low), then by time
+- Conflict Detection: Overlapping task detection and validation
+- Time Calculations: End time computation, duration tracking
+- Time Budget: Total/pending duration calculations for capacity planning
+- Status Filtering: Get tasks by Pending/Completed/Skipped status
+- Recurring Tasks: Daily and weekly task generation for next N days
+- Pet Filtering: Isolate tasks by specific pet from multi-pet schedules
+- Details & Metadata: Task detail formatting with priority and recurrence
+
+TEST COUNT: 29 test cases covering all major features
+PASS RATE TARGET: 100%
+
+See TESTING.md for detailed test documentation.
+"""
+
 import pytest
 from datetime import date, time, datetime, timedelta
 from pawpal_system import Pet, Owner, Activity, Walk, VetVisit, Feeding, TaskList
